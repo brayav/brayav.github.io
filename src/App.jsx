@@ -23,6 +23,7 @@ import {
     X
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import ReactGA from "react-ga4"; // <--- IMPORTANTE
 
 /**
  * ------------------------------------------------------------------
@@ -216,9 +217,7 @@ const ChristmasBackground3D = () => {
 };
 
 /**
- * ------------------------------------------------------------------ 
  * 2. REPRODUCTOR DE MÚSICA NAVIDEÑA INTELIGENTE
- * ------------------------------------------------------------------ 
  */
 const ChristmasRadio = () => {
     const [isPlaying, setIsPlaying] = useState(false);
@@ -236,7 +235,6 @@ const ChristmasRadio = () => {
                 await audioRef.current.play();
                 setIsPlaying(true);
             } catch (err) {
-                console.log("Autoplay bloqueado. Esperando interacción...");
                 const startOnInteraction = () => {
                     if (audioRef.current) {
                         audioRef.current.play();
@@ -282,30 +280,16 @@ const ChristmasRadio = () => {
                     <span className="w-1 h-1/2 bg-yellow-400 animate-[pulse_0.5s_ease-in-out_infinite]"></span>
                 </div>
             )}
-
-            <button
-                onClick={togglePlay}
-                className={`
-                    flex items-center gap-2 px-4 py-3 rounded-full shadow-2xl backdrop-blur-md border border-white/20
-                    transition-all duration-300 hover:scale-105 active:scale-95
-                    ${isPlaying
-                        ? 'bg-gradient-to-r from-green-600 to-red-600 text-white shadow-[0_0_20px_rgba(34,197,94,0.4)]'
-                        : 'bg-black/60 text-gray-400'}
-                `}
-            >
+            <button onClick={togglePlay} className={`flex items-center gap-2 px-4 py-3 rounded-full shadow-2xl backdrop-blur-md border border-white/20 transition-all duration-300 hover:scale-105 active:scale-95 ${isPlaying ? 'bg-gradient-to-r from-green-600 to-red-600 text-white shadow-[0_0_20px_rgba(34,197,94,0.4)]' : 'bg-black/60 text-gray-400'}`}>
                 {isPlaying ? <Volume2 size={20} /> : <VolumeX size={20} />}
-                <span className="text-xs font-bold uppercase tracking-wider hidden sm:block">
-                    {isPlaying ? 'Navidad ON' : 'Play Música'}
-                </span>
+                <span className="text-xs font-bold uppercase tracking-wider hidden sm:block">{isPlaying ? 'Navidad ON' : 'Play Música'}</span>
             </button>
         </div>
     );
 };
 
 /**
- * ------------------------------------------------------------------
- * 3. CONTADOR DE CUMPLEAÑOS (NUEVO DISEÑO COMPACTO Y ALINEADO)
- * ------------------------------------------------------------------
+ * 3. CONTADOR DE CUMPLEAÑOS
  */
 const BirthdayCountdown = () => {
     const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
@@ -316,13 +300,8 @@ const BirthdayCountdown = () => {
             const now = new Date();
             const currentYear = now.getFullYear();
             let birthday = new Date(currentYear, 11, 24, 0, 0, 0);
-
-            if (now.getTime() > birthday.getTime()) {
-                birthday.setFullYear(currentYear + 1);
-            }
-
+            if (now.getTime() > birthday.getTime()) birthday.setFullYear(currentYear + 1);
             const difference = birthday - now;
-
             if (difference > 0) {
                 return {
                     days: Math.floor(difference / (1000 * 60 * 60 * 24)),
@@ -333,11 +312,7 @@ const BirthdayCountdown = () => {
             }
             return { days: 0, hours: 0, minutes: 0, seconds: 0 };
         };
-
-        const timer = setInterval(() => {
-            setTimeLeft(calculateTimeLeft());
-        }, 1000);
-
+        const timer = setInterval(() => setTimeLeft(calculateTimeLeft()), 1000);
         return () => clearInterval(timer);
     }, []);
 
@@ -345,43 +320,20 @@ const BirthdayCountdown = () => {
 
     return (
         <>
-            {/* VISTA MINI (Alineada en el Grid Principal) */}
-            <div
-                onClick={() => setIsModalOpen(true)}
-                className="text-center group cursor-pointer hover:opacity-80 transition-opacity"
-                title="Click para ver cuenta regresiva"
-            >
-                {/* Contenedor flex con altura fija para alineación perfecta */}
+            <div onClick={() => setIsModalOpen(true)} className="text-center group cursor-pointer hover:opacity-80 transition-opacity" title="Click para ver cuenta regresiva">
                 <div className="flex items-center justify-center gap-2 h-[36px] sm:h-[40px]">
                     <Clock size={18} className="text-red-500 animate-[spin_4s_linear_infinite]" />
-                    <p className="text-xl sm:text-2xl md:text-3xl font-bold text-red-500 font-mono group-hover:scale-110 transition-transform duration-300">
-                        {timeLeft.days}
-                    </p>
+                    <p className="text-xl sm:text-2xl md:text-3xl font-bold text-red-500 font-mono group-hover:scale-110 transition-transform duration-300">{timeLeft.days}</p>
                 </div>
-                <p className="text-[10px] sm:text-xs text-gray-400 mt-1">
-                    Días para mi Cumple
-                </p>
+                <p className="text-[10px] sm:text-xs text-gray-400 mt-1">Días para mi Cumple</p>
             </div>
-
-            {/* MODAL COMPACTO FLOTANTE (Horizontal) */}
             {isModalOpen && (
                 <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center animate-fade-in p-4">
                     <div className="bg-[#111] border border-white/10 rounded-2xl p-6 relative shadow-[0_0_50px_rgba(255,0,0,0.2)] max-w-2xl w-full">
-
-                        {/* Header del Modal */}
                         <div className="flex justify-between items-start mb-6 border-b border-white/5 pb-4">
-                            <h2 className="text-xl sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-green-400 uppercase tracking-widest flex items-center gap-2">
-                                🎄 Cuenta Regresiva 🎂
-                            </h2>
-                            <button
-                                onClick={() => setIsModalOpen(false)}
-                                className="bg-white/10 hover:bg-red-600 text-white p-2 rounded-full transition-all"
-                            >
-                                <X size={20} />
-                            </button>
+                            <h2 className="text-xl sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-green-400 uppercase tracking-widest flex items-center gap-2">🎄 Cuenta Regresiva 🎂</h2>
+                            <button onClick={() => setIsModalOpen(false)} className="bg-white/10 hover:bg-red-600 text-white p-2 rounded-full transition-all"><X size={20} /></button>
                         </div>
-
-                        {/* Contadores en Fila Horizontal */}
                         <div className="flex flex-row justify-between items-center gap-2 sm:gap-4">
                             <TimeBoxCompact val={f(timeLeft.days)} label="DÍAS" color="text-red-500" />
                             <span className="text-2xl text-gray-600 font-thin">:</span>
@@ -391,10 +343,7 @@ const BirthdayCountdown = () => {
                             <span className="text-2xl text-gray-600 font-thin">:</span>
                             <TimeBoxCompact val={f(timeLeft.seconds)} label="SEG" color="text-yellow-400" />
                         </div>
-
-                        <p className="mt-6 text-center text-xs text-gray-500 italic">
-                            Faltan {timeLeft.days} días para el 24 de Diciembre
-                        </p>
+                        <p className="mt-6 text-center text-xs text-gray-500 italic">Faltan {timeLeft.days} días para el 24 de Diciembre</p>
                     </div>
                 </div>
             )}
@@ -402,13 +351,10 @@ const BirthdayCountdown = () => {
     );
 };
 
-// Componente auxiliar para las cajas del modal compacto
 const TimeBoxCompact = ({ val, label, color }) => (
     <div className="flex flex-col items-center flex-1">
         <div className="bg-[#1a1a1a] rounded-lg border border-white/5 w-full py-3 flex items-center justify-center">
-            <span className={`text-2xl sm:text-4xl font-mono font-bold ${color}`}>
-                {val}
-            </span>
+            <span className={`text-2xl sm:text-4xl font-mono font-bold ${color}`}>{val}</span>
         </div>
         <span className="mt-2 text-[10px] sm:text-xs font-bold text-gray-500 tracking-widest">{label}</span>
     </div>
@@ -609,6 +555,31 @@ const PORTFOLIO_DATA = {
  * 6. APP PRINCIPAL
  */
 export default function App() {
+    // ------------------- RASTREO CON GOOGLE ANALYTICS -------------------
+    // Inicia el rastreador al cargar la página
+    useEffect(() => {
+        // Reemplaza "G-XXXXXXXXXX" con tu ID real de Google Analytics
+        ReactGA.initialize("G-ZPDCGEZE3F");
+
+        // 1. Registrar la visita
+        ReactGA.send({ hitType: "pageview", page: window.location.pathname });
+
+        // 2. Detectar la fuente (TikTok, Insta, etc) desde la URL
+        // Ejemplo: si entran a brayav.github.io/?fuente=tiktok
+        const query = new URLSearchParams(window.location.search);
+        const source = query.get("fuente");
+
+        if (source) {
+            ReactGA.event({
+                category: "Traffic Source",
+                action: "Visit from Social Media",
+                label: source // "tiktok", "instagram", etc.
+            });
+            console.log(`Visita registrada desde: ${source}`);
+        }
+    }, []);
+    // ---------------------------------------------------------------------
+
     return (
         <div className="min-h-screen text-gray-100 font-sans selection:bg-blue-500 selection:text-white overflow-x-hidden pb-12">
             <ChristmasBackground3D />
