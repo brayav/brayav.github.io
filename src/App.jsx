@@ -1,6 +1,7 @@
 import {
     BookOpen,
     Bot,
+    Clock,
     Cpu,
     Download,
     Gift,
@@ -18,13 +19,14 @@ import {
     Terminal,
     TreePine,
     Volume2,
-    VolumeX
+    VolumeX,
+    X // Icono para cerrar el modal
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 /**
  * ------------------------------------------------------------------
- * 1. FONDO 3D NAVIDEÑO (Nieve y Copos Flotantes)
+ * 1. FONDO 3D NAVIDEÑO
  * ------------------------------------------------------------------
  */
 const ChristmasBackground3D = () => {
@@ -107,10 +109,6 @@ const ChristmasBackground3D = () => {
                 ctx.beginPath();
                 ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
                 ctx.fill();
-                ctx.shadowBlur = 10;
-                ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
-                ctx.fill();
-                ctx.shadowBlur = 0;
             });
 
             snowflakes.forEach(flake => {
@@ -158,13 +156,6 @@ const ChristmasBackground3D = () => {
                         ctx.lineTo(flake.size, 0);
                         ctx.closePath();
                         ctx.fill();
-                        ctx.fillStyle = `rgba(34, 197, 94, ${flake.opacity * 0.8})`;
-                        ctx.beginPath();
-                        ctx.moveTo(0, -flake.size);
-                        ctx.lineTo(-flake.size * 0.8, flake.size);
-                        ctx.lineTo(flake.size * 0.8, flake.size);
-                        ctx.closePath();
-                        ctx.fill();
                         ctx.fillStyle = `rgba(139, 69, 19, ${flake.opacity})`;
                         ctx.fillRect(-flake.size * 0.3, flake.size, flake.size * 0.6, flake.size);
                     } else {
@@ -194,20 +185,6 @@ const ChristmasBackground3D = () => {
                 });
             });
 
-            const time = Date.now() * 0.001;
-            const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff'];
-            colors.forEach((color, i) => {
-                const x = canvas.width * 0.1 + (canvas.width * 0.8) * (i / (colors.length - 1));
-                const y = canvas.height * 0.1;
-                ctx.shadowBlur = 20 + Math.sin(time * 2 + i) * 10;
-                ctx.shadowColor = color;
-                ctx.fillStyle = color;
-                ctx.beginPath();
-                ctx.arc(x, y, 2, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.shadowBlur = 0;
-            });
-
             animationRef.current = requestAnimationFrame(draw);
         };
 
@@ -233,7 +210,7 @@ const ChristmasBackground3D = () => {
 
 /**
  * ------------------------------------------------------------------ 
- * 2. REPRODUCTOR DE MÚSICA (Auto-Start Forzado)
+ * 2. REPRODUCTOR DE MÚSICA INTELIGENTE
  * ------------------------------------------------------------------ 
  */
 const ChristmasRadio = () => {
@@ -241,55 +218,43 @@ const ChristmasRadio = () => {
     const audioRef = useRef(null);
 
     useEffect(() => {
-        // Cargar audio
-        const audio = new Audio("/musica/navidad.mp3");
-        audio.loop = true;
-        audio.volume = 0.5;
-        // Inicio aleatorio
-        audio.currentTime = Math.random() * 60;
+        // RUTA CORREGIDA: Apunta a la carpeta 'public'
+        audioRef.current = new Audio("/music/navidad.mp3");
+        audioRef.current.loop = true;
+        audioRef.current.volume = 0.4;
 
-        audioRef.current = audio;
+        // INICIO ALEATORIO
+        const randomStartTime = Math.random() * 90;
+        audioRef.current.currentTime = randomStartTime;
 
-        // Función para intentar reproducir
-        const attemptPlay = async () => {
+        const tryPlay = async () => {
             try {
-                await audio.play();
+                await audioRef.current.play();
                 setIsPlaying(true);
-            } catch (error) {
-                console.log("Autoplay bloqueado esperando interacción...");
-            }
-        };
-
-        // 1. Intentar reproducir inmediatamente al cargar
-        attemptPlay();
-
-        // 2. "Trampa" para activar audio al primer contacto del usuario
-        // (Esto salta la restricción del navegador de manera invisible)
-        const unlockAudio = () => {
-            if (audio.paused) {
-                audio.play()
-                    .then(() => {
+            } catch (err) {
+                console.log("Autoplay bloqueado. Esperando interacción...");
+                const startOnInteraction = () => {
+                    if (audioRef.current) {
+                        audioRef.current.play();
                         setIsPlaying(true);
-                        // Una vez activado, limpiamos los detectores para ahorrar memoria
-                        cleanUpListeners();
-                    })
-                    .catch(e => console.error("Aún bloqueado:", e));
+                        window.removeEventListener('click', startOnInteraction);
+                        window.removeEventListener('scroll', startOnInteraction);
+                        window.removeEventListener('keydown', startOnInteraction);
+                    }
+                };
+                window.addEventListener('click', startOnInteraction);
+                window.addEventListener('scroll', startOnInteraction);
+                window.addEventListener('keydown', startOnInteraction);
             }
         };
 
-        const events = ['click', 'scroll', 'keydown', 'touchstart', 'mousemove'];
-
-        const cleanUpListeners = () => {
-            events.forEach(e => window.removeEventListener(e, unlockAudio));
-        };
-
-        // Escuchar cualquier movimiento para activar la música
-        events.forEach(e => window.addEventListener(e, unlockAudio));
+        tryPlay();
 
         return () => {
-            cleanUpListeners();
-            audio.pause();
-            audio.src = "";
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current = null;
+            }
         };
     }, []);
 
@@ -305,7 +270,6 @@ const ChristmasRadio = () => {
 
     return (
         <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2 animate-fade-in-up">
-            {/* Ecualizador Visual (Solo se ve si suena) */}
             {isPlaying && (
                 <div className="flex gap-1 mr-3 mb-1 h-4 items-end">
                     <span className="w-1 h-full bg-green-400 animate-[pulse_0.6s_ease-in-out_infinite]"></span>
@@ -335,7 +299,115 @@ const ChristmasRadio = () => {
 };
 
 /**
- * 3. COMPONENTES EXISTENTES
+ * 3. CONTADOR INTERACTIVO CON MODAL (CUENTA REGRESIVA)
+ */
+const BirthdayCountdown = () => {
+    const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    useEffect(() => {
+        const calculateTimeLeft = () => {
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            let birthday = new Date(currentYear, 11, 24, 0, 0, 0); // 24 de Dic a las 00:00:00
+
+            // Si ya pasó el 24 de este año, contar para el siguiente
+            if (now.getTime() > birthday.getTime()) {
+                birthday.setFullYear(currentYear + 1);
+            }
+
+            const difference = birthday - now;
+
+            if (difference > 0) {
+                return {
+                    days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+                    hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+                    minutes: Math.floor((difference / 1000 / 60) % 60),
+                    seconds: Math.floor((difference / 1000) % 60)
+                };
+            }
+            return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+        };
+
+        // Actualizar cada segundo
+        const timer = setInterval(() => {
+            setTimeLeft(calculateTimeLeft());
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, []);
+
+    // Formatear números a 2 dígitos (09 en vez de 9)
+    const f = (n) => n.toString().padStart(2, '0');
+
+    return (
+        <>
+            {/* VISTA MINI (En el Header) */}
+            <div
+                onClick={() => setIsModalOpen(true)}
+                className="text-center group cursor-pointer p-2 rounded-xl transition-all hover:bg-white/5 active:scale-95"
+                title="Click para ver cuenta regresiva"
+            >
+                <div className="flex items-center justify-center gap-2 mb-1">
+                    <Clock size={20} className="text-red-500 animate-[spin_3s_linear_infinite]" />
+                    <p className="text-xl sm:text-2xl md:text-3xl font-bold text-red-500 font-mono group-hover:scale-110 transition-transform duration-300">
+                        {timeLeft.days}
+                    </p>
+                </div>
+                <p className="text-[10px] sm:text-xs text-gray-400 group-hover:text-white transition-colors">
+                    Días para mi Cumple
+                </p>
+            </div>
+
+            {/* MODAL GIGANTE (Overlay) */}
+            {isModalOpen && (
+                <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-xl flex flex-col items-center justify-center animate-fade-in">
+
+                    {/* Botón cerrar */}
+                    <button
+                        onClick={() => setIsModalOpen(false)}
+                        className="absolute top-6 right-6 p-3 rounded-full bg-white/10 hover:bg-red-600/80 text-white transition-all hover:rotate-90"
+                    >
+                        <X size={32} />
+                    </button>
+
+                    {/* Contenido del Modal */}
+                    <div className="text-center p-4">
+                        <h2 className="text-2xl sm:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-green-400 mb-8 uppercase tracking-widest">
+                            🎄 Cuenta Regresiva 🎂
+                        </h2>
+
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8">
+                            <TimeBox val={f(timeLeft.days)} label="DÍAS" color="text-red-500" />
+                            <TimeBox val={f(timeLeft.hours)} label="HORAS" color="text-green-500" />
+                            <TimeBox val={f(timeLeft.minutes)} label="MINUTOS" color="text-blue-400" />
+                            <TimeBox val={f(timeLeft.seconds)} label="SEGUNDOS" color="text-yellow-400" />
+                        </div>
+
+                        <p className="mt-12 text-gray-400 text-sm animate-pulse">
+                            Faltan {timeLeft.days} días para el 24 de Diciembre
+                        </p>
+                    </div>
+                </div>
+            )}
+        </>
+    );
+};
+
+// Componente auxiliar para las cajas de tiempo del modal
+const TimeBox = ({ val, label, color }) => (
+    <div className="flex flex-col items-center">
+        <div className="w-24 h-24 sm:w-32 sm:h-32 bg-[#1a1a1a] rounded-2xl border border-white/10 flex items-center justify-center shadow-[0_0_30px_rgba(0,0,0,0.5)] transform hover:scale-105 transition-transform">
+            <span className={`text-4xl sm:text-6xl font-mono font-bold ${color}`}>
+                {val}
+            </span>
+        </div>
+        <span className="mt-3 text-xs sm:text-sm font-bold text-gray-500 tracking-widest">{label}</span>
+    </div>
+);
+
+/**
+ * 4. COURSE TERMINAL
  */
 const CourseTerminal = ({ courses }) => {
     const canvasRef = useRef(null);
@@ -492,7 +564,7 @@ const ProjectCarousel = ({ projects }) => {
 };
 
 /**
- * 4. DATA
+ * 5. DATA
  */
 const PORTFOLIO_DATA = {
     profile: {
@@ -526,7 +598,7 @@ const PORTFOLIO_DATA = {
 };
 
 /**
- * 5. APP PRINCIPAL
+ * 6. APP PRINCIPAL
  */
 export default function App() {
     return (
@@ -568,7 +640,8 @@ export default function App() {
                             </div>
                         </div>
                         <div className="grid grid-cols-3 gap-2 sm:gap-4 pt-4 sm:pt-6 border-t border-white/10">
-                            <div className="text-center"><p className="text-xl sm:text-2xl md:text-3xl font-bold text-red-500">25</p><p className="text-[10px] sm:text-xs text-gray-400">Días para Navidad</p></div>
+                            {/* CONTADOR DE CUMPLEAÑOS AQUÍ */}
+                            <BirthdayCountdown />
                             <div className="text-center"><p className="text-xl sm:text-2xl md:text-3xl font-bold text-green-500">12+</p><p className="text-[10px] sm:text-xs text-gray-400">proyectos creados</p></div>
                             <div className="text-center"><p className="text-xl sm:text-2xl md:text-3xl font-bold text-blue-500">20+</p><p className="text-[10px] sm:text-xs text-gray-400">clientes satisfechos</p></div>
                         </div>
