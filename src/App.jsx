@@ -219,7 +219,7 @@ const ChristmasRadio = () => {
 
     useEffect(() => {
         // RUTA CORREGIDA: Apunta a la carpeta 'public'
-        audioRef.current = new Audio("/music/navidad.mp3");
+        audioRef.current = new Audio("/musica/navidad.mp3");
         audioRef.current.loop = true;
         audioRef.current.volume = 0.4;
 
