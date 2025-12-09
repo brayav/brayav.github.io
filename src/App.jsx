@@ -20,7 +20,7 @@ import {
     TreePine,
     Volume2,
     VolumeX,
-    X // Icono para cerrar el modal
+    X
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
@@ -156,6 +156,13 @@ const ChristmasBackground3D = () => {
                         ctx.lineTo(flake.size, 0);
                         ctx.closePath();
                         ctx.fill();
+                        ctx.fillStyle = `rgba(34, 197, 94, ${flake.opacity * 0.8})`;
+                        ctx.beginPath();
+                        ctx.moveTo(0, -flake.size);
+                        ctx.lineTo(-flake.size * 0.8, flake.size);
+                        ctx.lineTo(flake.size * 0.8, flake.size);
+                        ctx.closePath();
+                        ctx.fill();
                         ctx.fillStyle = `rgba(139, 69, 19, ${flake.opacity})`;
                         ctx.fillRect(-flake.size * 0.3, flake.size, flake.size * 0.6, flake.size);
                     } else {
@@ -210,7 +217,7 @@ const ChristmasBackground3D = () => {
 
 /**
  * ------------------------------------------------------------------ 
- * 2. REPRODUCTOR DE MÚSICA INTELIGENTE
+ * 2. REPRODUCTOR DE MÚSICA NAVIDEÑA INTELIGENTE
  * ------------------------------------------------------------------ 
  */
 const ChristmasRadio = () => {
@@ -218,12 +225,9 @@ const ChristmasRadio = () => {
     const audioRef = useRef(null);
 
     useEffect(() => {
-        // RUTA CORREGIDA: Apunta a la carpeta 'public'
         audioRef.current = new Audio("/musica/navidad.mp3");
         audioRef.current.loop = true;
         audioRef.current.volume = 0.4;
-
-        // INICIO ALEATORIO
         const randomStartTime = Math.random() * 90;
         audioRef.current.currentTime = randomStartTime;
 
@@ -299,7 +303,9 @@ const ChristmasRadio = () => {
 };
 
 /**
- * 3. CONTADOR INTERACTIVO CON MODAL (CUENTA REGRESIVA)
+ * ------------------------------------------------------------------
+ * 3. CONTADOR DE CUMPLEAÑOS (NUEVO DISEÑO COMPACTO Y ALINEADO)
+ * ------------------------------------------------------------------
  */
 const BirthdayCountdown = () => {
     const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
@@ -309,9 +315,8 @@ const BirthdayCountdown = () => {
         const calculateTimeLeft = () => {
             const now = new Date();
             const currentYear = now.getFullYear();
-            let birthday = new Date(currentYear, 11, 24, 0, 0, 0); // 24 de Dic a las 00:00:00
+            let birthday = new Date(currentYear, 11, 24, 0, 0, 0);
 
-            // Si ya pasó el 24 de este año, contar para el siguiente
             if (now.getTime() > birthday.getTime()) {
                 birthday.setFullYear(currentYear + 1);
             }
@@ -329,7 +334,6 @@ const BirthdayCountdown = () => {
             return { days: 0, hours: 0, minutes: 0, seconds: 0 };
         };
 
-        // Actualizar cada segundo
         const timer = setInterval(() => {
             setTimeLeft(calculateTimeLeft());
         }, 1000);
@@ -337,54 +341,58 @@ const BirthdayCountdown = () => {
         return () => clearInterval(timer);
     }, []);
 
-    // Formatear números a 2 dígitos (09 en vez de 9)
     const f = (n) => n.toString().padStart(2, '0');
 
     return (
         <>
-            {/* VISTA MINI (En el Header) */}
+            {/* VISTA MINI (Alineada en el Grid Principal) */}
             <div
                 onClick={() => setIsModalOpen(true)}
-                className="text-center group cursor-pointer p-2 rounded-xl transition-all hover:bg-white/5 active:scale-95"
+                className="text-center group cursor-pointer hover:opacity-80 transition-opacity"
                 title="Click para ver cuenta regresiva"
             >
-                <div className="flex items-center justify-center gap-2 mb-1">
-                    <Clock size={20} className="text-red-500 animate-[spin_3s_linear_infinite]" />
+                {/* Contenedor flex con altura fija para alineación perfecta */}
+                <div className="flex items-center justify-center gap-2 h-[36px] sm:h-[40px]">
+                    <Clock size={18} className="text-red-500 animate-[spin_4s_linear_infinite]" />
                     <p className="text-xl sm:text-2xl md:text-3xl font-bold text-red-500 font-mono group-hover:scale-110 transition-transform duration-300">
                         {timeLeft.days}
                     </p>
                 </div>
-                <p className="text-[10px] sm:text-xs text-gray-400 group-hover:text-white transition-colors">
+                <p className="text-[10px] sm:text-xs text-gray-400 mt-1">
                     Días para mi Cumple
                 </p>
             </div>
 
-            {/* MODAL GIGANTE (Overlay) */}
+            {/* MODAL COMPACTO FLOTANTE (Horizontal) */}
             {isModalOpen && (
-                <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-xl flex flex-col items-center justify-center animate-fade-in">
+                <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center animate-fade-in p-4">
+                    <div className="bg-[#111] border border-white/10 rounded-2xl p-6 relative shadow-[0_0_50px_rgba(255,0,0,0.2)] max-w-2xl w-full">
 
-                    {/* Botón cerrar */}
-                    <button
-                        onClick={() => setIsModalOpen(false)}
-                        className="absolute top-6 right-6 p-3 rounded-full bg-white/10 hover:bg-red-600/80 text-white transition-all hover:rotate-90"
-                    >
-                        <X size={32} />
-                    </button>
-
-                    {/* Contenido del Modal */}
-                    <div className="text-center p-4">
-                        <h2 className="text-2xl sm:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-green-400 mb-8 uppercase tracking-widest">
-                            🎄 Cuenta Regresiva 🎂
-                        </h2>
-
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8">
-                            <TimeBox val={f(timeLeft.days)} label="DÍAS" color="text-red-500" />
-                            <TimeBox val={f(timeLeft.hours)} label="HORAS" color="text-green-500" />
-                            <TimeBox val={f(timeLeft.minutes)} label="MINUTOS" color="text-blue-400" />
-                            <TimeBox val={f(timeLeft.seconds)} label="SEGUNDOS" color="text-yellow-400" />
+                        {/* Header del Modal */}
+                        <div className="flex justify-between items-start mb-6 border-b border-white/5 pb-4">
+                            <h2 className="text-xl sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-green-400 uppercase tracking-widest flex items-center gap-2">
+                                🎄 Cuenta Regresiva 🎂
+                            </h2>
+                            <button
+                                onClick={() => setIsModalOpen(false)}
+                                className="bg-white/10 hover:bg-red-600 text-white p-2 rounded-full transition-all"
+                            >
+                                <X size={20} />
+                            </button>
                         </div>
 
-                        <p className="mt-12 text-gray-400 text-sm animate-pulse">
+                        {/* Contadores en Fila Horizontal */}
+                        <div className="flex flex-row justify-between items-center gap-2 sm:gap-4">
+                            <TimeBoxCompact val={f(timeLeft.days)} label="DÍAS" color="text-red-500" />
+                            <span className="text-2xl text-gray-600 font-thin">:</span>
+                            <TimeBoxCompact val={f(timeLeft.hours)} label="HRS" color="text-green-500" />
+                            <span className="text-2xl text-gray-600 font-thin">:</span>
+                            <TimeBoxCompact val={f(timeLeft.minutes)} label="MIN" color="text-blue-400" />
+                            <span className="text-2xl text-gray-600 font-thin">:</span>
+                            <TimeBoxCompact val={f(timeLeft.seconds)} label="SEG" color="text-yellow-400" />
+                        </div>
+
+                        <p className="mt-6 text-center text-xs text-gray-500 italic">
                             Faltan {timeLeft.days} días para el 24 de Diciembre
                         </p>
                     </div>
@@ -394,15 +402,15 @@ const BirthdayCountdown = () => {
     );
 };
 
-// Componente auxiliar para las cajas de tiempo del modal
-const TimeBox = ({ val, label, color }) => (
-    <div className="flex flex-col items-center">
-        <div className="w-24 h-24 sm:w-32 sm:h-32 bg-[#1a1a1a] rounded-2xl border border-white/10 flex items-center justify-center shadow-[0_0_30px_rgba(0,0,0,0.5)] transform hover:scale-105 transition-transform">
-            <span className={`text-4xl sm:text-6xl font-mono font-bold ${color}`}>
+// Componente auxiliar para las cajas del modal compacto
+const TimeBoxCompact = ({ val, label, color }) => (
+    <div className="flex flex-col items-center flex-1">
+        <div className="bg-[#1a1a1a] rounded-lg border border-white/5 w-full py-3 flex items-center justify-center">
+            <span className={`text-2xl sm:text-4xl font-mono font-bold ${color}`}>
                 {val}
             </span>
         </div>
-        <span className="mt-3 text-xs sm:text-sm font-bold text-gray-500 tracking-widest">{label}</span>
+        <span className="mt-2 text-[10px] sm:text-xs font-bold text-gray-500 tracking-widest">{label}</span>
     </div>
 );
 
@@ -639,11 +647,28 @@ export default function App() {
                                 </a>
                             </div>
                         </div>
-                        <div className="grid grid-cols-3 gap-2 sm:gap-4 pt-4 sm:pt-6 border-t border-white/10">
-                            {/* CONTADOR DE CUMPLEAÑOS AQUÍ */}
+
+                        {/* SECCIÓN DE ESTADÍSTICAS ALINEADA */}
+                        <div className="grid grid-cols-3 gap-2 sm:gap-4 pt-6 sm:pt-8 border-t border-white/10 items-start">
+
+                            {/* 1. CONTADOR DE CUMPLEAÑOS */}
                             <BirthdayCountdown />
-                            <div className="text-center"><p className="text-xl sm:text-2xl md:text-3xl font-bold text-green-500">12+</p><p className="text-[10px] sm:text-xs text-gray-400">proyectos creados</p></div>
-                            <div className="text-center"><p className="text-xl sm:text-2xl md:text-3xl font-bold text-blue-500">20+</p><p className="text-[10px] sm:text-xs text-gray-400">clientes satisfechos</p></div>
+
+                            {/* 2. PROYECTOS */}
+                            <div className="text-center">
+                                <div className="flex items-center justify-center h-[36px] sm:h-[40px]">
+                                    <p className="text-xl sm:text-2xl md:text-3xl font-bold text-green-500">12+</p>
+                                </div>
+                                <p className="text-[10px] sm:text-xs text-gray-400 mt-1">proyectos creados</p>
+                            </div>
+
+                            {/* 3. CLIENTES */}
+                            <div className="text-center">
+                                <div className="flex items-center justify-center h-[36px] sm:h-[40px]">
+                                    <p className="text-xl sm:text-2xl md:text-3xl font-bold text-blue-500">20+</p>
+                                </div>
+                                <p className="text-[10px] sm:text-xs text-gray-400 mt-1">clientes satisfechos</p>
+                            </div>
                         </div>
                     </div>
                 </section>
